@@ -93,49 +93,14 @@ func (np *NatsProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// Post request to message queue
-	msg, respErr := np.conn.Request(
+	 respErr := np.conn.Publish(
 		URLToNats(req.Method, req.URL.Path),
-		request.Body,
-		10*time.Second)
+		request.Body)
 	if respErr != nil {
 		http.Error(rw, "No response", http.StatusInternalServerError)
 		return
 	}
-	response := np.responsePool.GetResponse()
-	err = response.ReadFrom(msg.Data)
-	defer np.responsePool.Put(response)
-	if err != nil {
-		log.Println("nats-proxy:" + err.Error())
-		http.Error(rw, "Cannot deserialize response", http.StatusInternalServerError)
-		return
-	}
-
-	// Apply hook if regex match
-	for _, hG := range np.hooks {
-		if hG.regexp.MatchString(req.URL.Path) {
-			for _, hook := range hG.hooks {
-				hook(response)
-			}
-		}
-	}
-
-	// If response contains
-	// the permission to do ws upgrade, the
-	// proxy side upgrades the connection and
-	// provides the Web Socket proxiing on
-	// provided wsID toppic (WS_IN+wsID as receiving
-	// and WS_OUT+wsID as outcoming)
-	if request.IsWebSocket() && response.DoUpgrade {
-		header := http.Header{}
-		copyHeader(response.Header, header)
-		if conn, err := upgrader.Upgrade(rw, req, header); err == nil {
-			np.activateWSProxySubject(conn, request.WebSocketID)
-		} else {
-			log.Println("natsproxy error: " + err.Error())
-		}
-	} else {
-		writeResponse(rw, response)
-	}
+	
 
 }
 
