@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/gogo/protobuf/proto"
+	_ "github.com/gogo/protobuf/proto"
 	"github.com/gorilla/websocket"
 	"github.com/nats-io/nats"
 )
