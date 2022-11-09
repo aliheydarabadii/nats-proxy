@@ -86,8 +86,7 @@ func (np *NatsProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// Serialize the request.
-	reqBytes, err := proto.Marshal(request)
+	
 	if err != nil {
 		http.Error(rw, "Cannot process request", http.StatusInternalServerError)
 		return
@@ -96,7 +95,7 @@ func (np *NatsProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// Post request to message queue
 	msg, respErr := np.conn.Request(
 		URLToNats(req.Method, req.URL.Path),
-		reqBytes,
+		request.Body,
 		10*time.Second)
 	if respErr != nil {
 		http.Error(rw, "No response", http.StatusInternalServerError)
