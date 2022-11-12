@@ -91,7 +91,7 @@ func (np *NatsProxy) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		http.Error(rw, "Cannot process request", http.StatusInternalServerError)
 		return
 	}
-
+	fmt.Println(URLToNats(req.Method, req.URL.Path))
 	// Post request to message queue
 	 respErr := np.conn.Publish(
 		URLToNats(req.Method, req.URL.Path),
